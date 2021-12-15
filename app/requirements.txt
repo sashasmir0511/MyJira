@@ -1,0 +1,11 @@
+databases==0.5.2
+fastapi==0.70.1
+python-jose[cryptography]
+passlib==1.7.4
+pydantic==1.8.2
+SQLAlchemy==1.4.25
+starlette==0.16.0
+uvicorn==0.15.0
+asyncpg
+pydantic[email]
+bcrypt
