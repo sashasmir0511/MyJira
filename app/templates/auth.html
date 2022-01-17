@@ -1,0 +1,33 @@
+<html>
+
+<body>
+    <h1>Login</h1>
+    <form action="" onsubmit="sendMessage(event)">
+        <input type="text" id="messageLogin" autocomplete="off"/>
+        <input type="text" id="messagePassword" autocomplete="off"/>
+        <button>Send</button>
+    </form>
+    <ul id='messages'>
+    </ul>
+    <script>
+        var ws = new WebSocket("ws://localhost:5000/ws");
+        ws.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            console.log(event)
+        };
+        function sendMessage(event) {
+            var input = document.getElementById("messageLogin")
+            var inputPassword = document.getElementById("messagePassword")
+            ws.send(JSON.stringify({L: input.value, P: inputPassword.value}))
+            input.value = ''
+            inputPassword.value = ''
+            event.preventDefault()
+        }
+    </script>
+</body>
+
+</html>

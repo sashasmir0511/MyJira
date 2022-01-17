@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,11 @@ def get_attachment_by_id(db: Session, attachment_id: int) -> Optional[ReturnAtta
     return None if result is None else ReturnAttachment.parse_obj(to_dict(result))
 
 
+def get_attachments_by_task_id(db: Session, task_id: int) -> List[ReturnAttachment]:
+    result = db.query(models.Attachment).filter(models.Attachment.task_id == task_id).all()
+    return [ReturnAttachment.parse_obj(to_dict(obj)) for obj in result]
+
+
 def get_attachment_by_name(db: Session, name: str) -> Optional[ReturnAttachment]:
     result = (
         db.query(models.Attachment).filter(models.Attachment.name == name).one_or_none()
@@ -26,9 +31,7 @@ def get_attachment_by_name(db: Session, name: str) -> Optional[ReturnAttachment]
     return None if result is None else ReturnAttachment.parse_obj(to_dict(result))
 
 
-def delete_attachment_by_id(
-    db: Session, attachment_id: int
-) -> Optional[ReturnAttachment]:
+def delete_attachment_by_id(db: Session, attachment_id: int) -> Optional[ReturnAttachment]:
     result = (
         db.query(models.Attachment)
         .filter(models.Attachment.id == attachment_id)
@@ -71,9 +74,7 @@ def create(db: Session, new_attachment: Attachment) -> ReturnAttachment:
     return ReturnAttachment.parse_obj(to_dict(db_attachment))
 
 
-def update(
-    db: Session, attachment_id: int, new_attachment: Attachment
-) -> Optional[ReturnAttachment]:
+def update(db: Session, attachment_id: int, new_attachment: Attachment) -> Optional[ReturnAttachment]:
     result = (
         db.query(models.Attachment)
         .filter(models.Attachment.id == attachment_id)

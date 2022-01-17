@@ -1,5 +1,9 @@
 import uvicorn
-from fastapi import FastAPI
+import json
+from fastapi import FastAPI, Request, WebSocket
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.routers import (
     attachment,
@@ -14,7 +18,16 @@ from app.routers import (
 )
 from app.sql_app.db.database import Base, database, engine
 
+
 app = FastAPI(title="Jira")
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
+
+@app.get("/items/{id}", response_class=HTMLResponse)
+async def read_item(request: Request, id: str):
+    return templates.TemplateResponse("item.html", {"request": request, "id": id})
+
 
 app.include_router(auth.router)
 app.include_router(attachment.router)
@@ -38,10 +51,5 @@ async def shutdown():
     await database.disconnect()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello this is jira"}
-
-
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, host="0.0.0.0", reload=True)
+    uvicorn.run("main:app", port=5000, host="0.0.0.0", reload=True)

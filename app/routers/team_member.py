@@ -33,6 +33,14 @@ async def get_all_team_members(
     return crud.get_all_team_members(db, limit=limit, skip=skip)
 
 
+@router.get("/team_members", response_model=List[ReturnTeamMember])
+async def get_team_members_by_project_id(
+    project_id: int,
+    db: Session = Depends(get_db),
+#    current_user: ReturnUser = Depends(get_current_user),
+):
+    return crud.get_team_members_by_project_id(db, project_id=project_id)
+
 @router.get("/team_member/{team_member_id}", response_model=ReturnTeamMember)
 async def get_team_member_by_id(
     team_member_id: int,
@@ -93,7 +101,7 @@ async def delete_team_member_by_user_name(
 async def create_team_member(
     new_team_member: TeamMember,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+#    current_user: ReturnUser = Depends(is_manager),
 ):
     return crud.create(db, new_team_member=new_team_member)
 

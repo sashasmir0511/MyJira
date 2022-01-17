@@ -1,0 +1,103 @@
+<html>
+
+<body>
+    <button type=" button"">Log out</button>
+    <table>
+        <tbody>
+            <tr>
+                <td><input size =30, placeholder="Enter task name"></input></td>
+                <td><button type=" button"">Find</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <h3>{{project_name}} {{project_id}}</h3>
+    <h1>{{task_name}}</h1>
+    <table>
+        <tbody>
+            <tr>
+                <td><label>Status: </label></td>
+                <td><select name=" Status">
+                        <option value="">Status</option>
+                        <option value="">Open</option>
+                        <option value="">Closed</option>
+                    </select></td>
+            </tr>
+            <tr>
+                <td><label>Requirements: </label></td>
+                <td><textarea>{{requirement_link}}</textarea></td>
+            </tr>
+            <tr>
+                <td><label>Manager: </label></td>
+                <td><label>{{manager}}</label></td>
+            </tr>
+            <tr>
+                <td><label>Assignee: </label></td>
+                <td><select name="No assignee">
+                    <option value="">Elizaveta Povarova</option>
+                    <option value="">Elza Mingazhitdinova</option>
+                    <option value="">Denis Tsapaev</option>
+                </select></td>
+            </tr>
+            <tr>
+                <td><label>Created at: </label></td>
+                <td><label>{{created_at}}</label></td>
+            </tr>
+            <tr>
+                <td><label>Last update: </label></td>
+                <td><label>{{updated_at}}</label></td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <b>Description:</b>
+    <br>
+    <textarea>{{description}}</textarea>
+    <br>
+    <br>
+    <td><button type="button"">Save</button></td>
+    <br>
+    <br>
+    <b>Attachements:</b>
+    {% for i in attachment_id %}
+    <br>
+    <td><u>http://0.0.0.0:5000/attachment/{{i}}</u></td>
+    <td><button type=" button"">Remove</button></td>
+    {% endfor %}
+    <br>
+    <button type=" button"">Add attachement</button>
+        <br>
+        <br>
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        <b>Comments</b>
+                    </td>
+                    <td></td>
+                </tr>
+            <tr>
+                {% for i in comments_id %}
+                <tr>
+                    <td><label>{{comments_message[loop.index - 1]}}</label></td>
+                    <td><label>{{comments_created_at[loop.index - 1]}}</label></td>
+                    <td><button type=" button"">Remove</button></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td><label>I can not do this anymore</label></td>
+                    <td><label>Ruslan Astapov, at 01.10.2021 11:00</label></td>
+                    <td><button type=" button"">Remove</button></td>
+                </tr>
+                <tr>
+                    <td><label>Let's stop it!</label></td>
+                    <td><label>Ruslan Astapov, at 01.11.2021 12:00</label></td>
+                    <td><button type=" button"">Remove</button></td>
+                </tr>
+                <td><textarea></textarea></td>
+                <td><button type="button"">Comment</button></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

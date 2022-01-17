@@ -14,6 +14,17 @@ def get_all_team_members(
     return [ReturnTeamMember.parse_obj(to_dict(obj)) for obj in result]
 
 
+def get_team_members_by_project_id(
+    db: Session, project_id: int
+) -> List[ReturnTeamMember]:
+    result = (
+        db.query(models.TeamMember)
+        .filter(models.TeamMember.project_id == project_id)
+        .all()
+    )
+    return [ReturnTeamMember.parse_obj(to_dict(obj)) for obj in result]
+
+
 def get_team_member_by_id(
     db: Session, team_member_id: int
 ) -> Optional[ReturnTeamMember]:

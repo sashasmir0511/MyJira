@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from fastapi import HTTPException
 from fastapi.params import Depends
@@ -30,7 +31,7 @@ async def get_attachment_by_id(
     attachment_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     attachment = crud.get_attachment_by_id(db, attachment_id=attachment_id)
     if attachment is None:
         raise HTTPException(
@@ -43,12 +44,22 @@ async def get_attachment_by_id(
     )
 
 
+@router.get("/attachment/{task_id}", response_class=List[ReturnAttachment])
+async def get_attachments_by_task_id(
+    task_id: int,
+    db: Session = Depends(get_db),
+    #current_user: ReturnUser = Depends(get_current_user),
+    ):
+    db_attachments = crud.get_attachments_by_task_id(db, task_id=task_id)
+    return db_attachments
+
+
 @router.get("/attachment", response_class=FileResponse)
 async def get_attachment_by_name(
     name: str,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     attachment = crud.get_attachment_by_name(db, name=name)
     if attachment is None:
         raise HTTPException(
@@ -66,7 +77,7 @@ async def delete_attachment_by_id(
     attachment_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     attachment = crud.delete_attachment_by_id(db, attachment_id=attachment_id)
     if attachment is None:
         raise HTTPException(
@@ -80,7 +91,7 @@ async def delete_attachment_by_name(
     name: str,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     attachment = crud.delete_attachment_by_name(db, name=name)
     if attachment is None:
         raise HTTPException(
@@ -94,7 +105,7 @@ async def create_attachment(
     new_attachment: Attachment,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     return crud.create(db, new_attachment=new_attachment)
 
 
@@ -104,7 +115,7 @@ async def update_attachment(
     new_attachment: Attachment,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     attachment = crud.update(
         db, new_attachment=new_attachment, attachment_id=attachment_id
     )

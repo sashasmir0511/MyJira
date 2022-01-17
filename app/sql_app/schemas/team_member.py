@@ -11,3 +11,5 @@ class TeamMember(BaseModel):
 
 class ReturnTeamMember(TeamMember):
     id: int
+    user_id: int
+    project_id: int

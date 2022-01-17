@@ -1,0 +1,103 @@
+<html>
+
+<body>
+    <button type=" button"">Log out</button>
+    <table>
+        <tbody>
+            <tr>
+                <td><input size =30, placeholder="Enter task name"></input></td>
+                <td><button type=" button"">Find</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <h1>{{project_name}} {{project_id}}</h1>
+    <table>
+        <tbody>
+            <tr>
+                <td><label>Creator: </label></td>
+                <td><label>{{creator_name}}</label></td>
+            </tr>
+            <tr>
+                <td><label>Created at: </label></td>
+                <td><label>{{release_date}}</label></td>
+            </tr>
+            <tr>
+                <td><label>Release: </label></td>
+                <td><u>{{release_name}}</u></td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <b>Description:</b>
+    <br>
+    <textarea>{{release_discription}}</textarea>
+    <br>
+    <br>
+    <table>
+        <tbody>
+            <tr>
+                <td><b>Name</b></td>
+                <td><b>Link</b></td>
+                <td><b>Creator</b></td>
+                <td><b>Assignee</b></td>
+            </tr>
+            {% for i in tasks_id %}
+            <tr>
+                <td><label>{{tasks_name[loop.index - 1]}} {{i}}</label></td>
+                <td><label>{{tasks_description[loop.index - 1]}}</label></td>
+                <td><u>http://0.0.0.0:5000/task/{{project_id}}/{{i}}</u></td>
+                <td><label>Elza Mingazhitdinova</label></td>
+                <td><label>No assignee</label></td>
+                <td><button type=" button"">Remove</button></td>
+            </tr>
+            {% endfor %}
+            </tr>
+            <tr>
+                <td><button type=" button"">Create task</button></td>
+            </tr>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <b>Team members</b>
+    <br>
+    <table>
+        <tbody>
+            <tr>
+                <td><b>Name</b></td>
+                <td><b>Is manager</b></td>
+                <td><b>Is active</b></td>
+                <td><b>Role</b></td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+            <tr>
+
+                {% for i in team_member_name %}
+                <tr>
+                    <td><label>{{i}}</label></td>
+                    <td><select name="">
+                        <option value="">no</option>
+                        <option value="">yes</option>
+                    </select></td>
+                    <td><select name="">
+                        <option value="">yes</option>
+                        <option value="">no</option>
+                    </select></td>
+                    <td><select name="">
+                        <option value="">Frontend developer</option>
+                        <option value="">Backend developer</option>
+                        <option value="">DB designer, architector</option>
+                        <option value="">Project leader</option>
+                        <option value="">Tech lead, architector</option>
+                        </select></td>
+                    <td><button type=" button"">Remove</button></td>
+                </tr>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

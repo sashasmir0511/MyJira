@@ -11,3 +11,6 @@ class Release(BaseModel):
 
 class ReturnRelease(Release):
     id: int
+    name: str
+    description: str
+    release_date: datetime

@@ -7,6 +7,11 @@ from ..schemas.project import ProjectCreate, ProjectEdit, ReturnProject
 from .utils import to_dict
 
 
+def get_all_projects(db: Session, limit: int = 10, skip: int = 0) -> List[ReturnProject]:
+    result = db.query(models.Project).offset(skip).limit(limit).all()
+    return [ReturnProject.parse_obj(to_dict(obj)) for obj in result]
+
+
 def get_project_by_id(db: Session, project_id: int) -> Optional[ReturnProject]:
     result = (
         db.query(models.Project).filter(models.Project.id == project_id).one_or_none()

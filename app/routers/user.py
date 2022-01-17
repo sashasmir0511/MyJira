@@ -28,7 +28,7 @@ async def get_all_users(
     limit: int = 10,
     skip: int = 0,
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     return crud.get_all_users(db, limit=limit, skip=skip)
 
 
@@ -37,7 +37,7 @@ async def get_user_by_id(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     result = crud.get_user_by_id(db, user_id)
     if result is None:
         raise HTTPException(
@@ -51,7 +51,7 @@ async def get_user_by_email(
     email: str,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     result = crud.get_by_email(db, email)
     if result is None:
         raise HTTPException(
@@ -65,7 +65,7 @@ async def delete_user_by_id(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_manager),
-):
+    ):
     result = crud.delete_user_by_id(db, user_id)
     if result is None:
         raise HTTPException(
@@ -79,7 +79,7 @@ async def delete_user_by_email(
     email: str,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_manager),
-):
+    ):
     result = crud.delete_by_email(db, email)
     if result is None:
         raise HTTPException(
@@ -94,7 +94,7 @@ async def update_user(
     user: UserIn,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     error = HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     old_user = crud.get_user_by_id(db, user_id=user_id)
     if old_user is None:
@@ -118,7 +118,7 @@ async def update_user(
 async def create_user(
     user: UserIn,
     db: Session = Depends(get_db),
-):
+    ):
     result = crud.create_user(db, user)
     if result is None:
         raise HTTPException(

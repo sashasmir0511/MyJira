@@ -13,6 +13,11 @@ def get_task_by_id(db: Session, task_id: int) -> Optional[ReturnTask]:
     return None if result is None else ReturnTask.parse_obj(to_dict(result))
 
 
+def get_tasks_by_project_id(db: Session, project_id: int) -> List[ReturnTask]:
+    result = db.query(models.Task).filter(models.Task.project_id == project_id).all()
+    return [ReturnTask.parse_obj(to_dict(obj)) for obj in result]
+
+
 def get_task_by_name(db: Session, name: str) -> Optional[ReturnTask]:
     result = db.query(models.Task).filter(models.Task.name == name).one_or_none()
     return None if result is None else ReturnTask.parse_obj(to_dict(result))

@@ -17,4 +17,7 @@ class ProjectEdit(ProjectBase):
 
 class ReturnProject(ProjectBase):
     id: int
+    name: str
     creator_id: int
+    release_id: int
+    description: str

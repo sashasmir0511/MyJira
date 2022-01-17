@@ -93,7 +93,7 @@ async def delete_role_by_name(
 async def create_role(
     new_role: Role,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+#    current_user: ReturnUser = Depends(is_manager),
 ):
     return crud.create(db, new_role=new_role)
 

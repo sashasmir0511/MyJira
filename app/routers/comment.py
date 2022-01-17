@@ -28,7 +28,7 @@ async def get_comment_by_task_id(
     task_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(get_current_user),
-):
+    ):
     comment = crud.get_comment_by_task_id(db, task_id=task_id)
     if comment is None:
         raise HTTPException(
@@ -42,7 +42,7 @@ async def delete_comment_by_id(
     comment_id: int,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     error = HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found"
     )
@@ -63,7 +63,7 @@ async def create_comment(
     new_comment: Comment,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     return crud.create(db, new_comment=new_comment, creator=current_user.id)
 
 
@@ -73,7 +73,7 @@ async def update_comment(
     new_comment: EditComment,
     db: Session = Depends(get_db),
     current_user: ReturnUser = Depends(is_team_member),
-):
+    ):
     error = HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found"
     )
