@@ -3,14 +3,19 @@
 <body>
     <h1>Login</h1>
     <form action="" onsubmit="sendMessage(event)">
-        <input type="text" id="messageLogin" autocomplete="off"/>
-        <input type="text" id="messagePassword" autocomplete="off"/>
+        <input type="text" id="messageLogin" value="user@example.com" autocomplete="off"/>
+        <br>
+        <br>
+        <input type="text" id="messagePassword" value="1234" autocomplete="off"/>
+        <br>
+        <br>
         <button>Send</button>
     </form>
     <ul id='messages'>
     </ul>
     <script>
         var ws = new WebSocket("ws://localhost:5000/ws");
+        
         ws.onmessage = function(event) {
             var messages = document.getElementById('messages')
             var message = document.createElement('li')
@@ -19,6 +24,7 @@
             messages.appendChild(message)
             console.log(event)
         };
+        
         function sendMessage(event) {
             var input = document.getElementById("messageLogin")
             var inputPassword = document.getElementById("messagePassword")

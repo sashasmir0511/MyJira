@@ -5,7 +5,7 @@ from app.routers.comment import get_comment_by_task_id
 
 from app.routers.user import get_user_by_id
 from app.routers.requirement import get_requirement_by_id
-from app.routers.attachment import get_attachments_by_task_id
+#from app.routers.attachment import get_attachments_by_task_id
 from ..sql_app.schemas.project import ReturnProject
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -57,8 +57,8 @@ async def read_task(
     db_requirement = await get_requirement_by_id(db_task.requirement_id, db=db)
     dict_Response['requirement_link'] = db_requirement.link
 
-    db_attachments = await get_attachments_by_task_id(task_id, db=db)
-    dict_Response['attachments_id'] = [db_attachments[i].id for i in range(len(db_attachments))]
+    # db_attachments = await get_attachments_by_task_id(task_id, db=db)
+    # dict_Response['attachments_id'] = [db_attachments[i].id for i in range(len(db_attachments))]
     #dict_Response['attachments_name'] = [db_attachments[i].name for i in range(len(db_attachments))]
 
     db_comments = await get_comment_by_task_id(task_id, db=db)

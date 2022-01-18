@@ -44,14 +44,18 @@ async def get_attachment_by_id(
     )
 
 
-@router.get("/attachment/{task_id}", response_class=List[ReturnAttachment])
-async def get_attachments_by_task_id(
-    task_id: int,
-    db: Session = Depends(get_db),
-    #current_user: ReturnUser = Depends(get_current_user),
-    ):
-    db_attachments = crud.get_attachments_by_task_id(db, task_id=task_id)
-    return db_attachments
+# @router.get("/attachment/{task_id}", response_class=List[FileResponse])
+# async def get_attachments_by_task_id(
+#     task_id: int,
+#     db: Session = Depends(get_db),
+#     #current_user: ReturnUser = Depends(get_current_user),
+#     ):
+#     db_attachments = crud.get_attachments_by_task_id(db, task_id=task_id)
+#     return [FileResponse(
+#         path=os.path.join(DOC_PATH, attachment.path, attachment.name),
+#         filename=attachment.name,
+#         media_type=attachment.type,
+#     ) for attachment in db_attachments]
 
 
 @router.get("/attachment", response_class=FileResponse)
@@ -79,7 +83,7 @@ async def delete_attachment_by_id(
     current_user: ReturnUser = Depends(get_current_user),
     ):
     attachment = crud.delete_attachment_by_id(db, attachment_id=attachment_id)
-    if attachment is None:
+    if attachment is []:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found"
         )

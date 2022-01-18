@@ -1,7 +1,7 @@
 <html>
 
 <body>
-    <button type=" button"">Log out</button>
+    <!-- <button type=" button"">Log out</button>
     <table>
         <tbody>
             <tr>
@@ -9,7 +9,7 @@
                 <td><button type=" button"">Find</button></td>
             </tr>
         </tbody>
-    </table>
+    </table> -->
     <h3>{{project_name}} {{project_id}}</h3>
     <h1>{{task_name}}</h1>
     <table>
@@ -54,6 +54,7 @@
     <textarea>{{description}}</textarea>
     <br>
     <br>
+    <!-- TODO: Кнопка Save -->
     <td><button type="button"">Save</button></td>
     <br>
     <br>
@@ -61,9 +62,11 @@
     {% for i in attachment_id %}
     <br>
     <td><u>http://0.0.0.0:5000/attachment/{{i}}</u></td>
+    <!-- TODO: Кнопка Remove -->
     <td><button type=" button"">Remove</button></td>
     {% endfor %}
     <br>
+    <!-- TODO: Кнопка Add attachement -->
     <button type=" button"">Add attachement</button>
         <br>
         <br>
@@ -80,19 +83,11 @@
                 <tr>
                     <td><label>{{comments_message[loop.index - 1]}}</label></td>
                     <td><label>{{comments_created_at[loop.index - 1]}}</label></td>
+                    <!-- TODO: Кнопка Remove -->
                     <td><button type=" button"">Remove</button></td>
                 </tr>
                 {% endfor %}
-                <tr>
-                    <td><label>I can not do this anymore</label></td>
-                    <td><label>Ruslan Astapov, at 01.10.2021 11:00</label></td>
-                    <td><button type=" button"">Remove</button></td>
-                </tr>
-                <tr>
-                    <td><label>Let's stop it!</label></td>
-                    <td><label>Ruslan Astapov, at 01.11.2021 12:00</label></td>
-                    <td><button type=" button"">Remove</button></td>
-                </tr>
+                <!-- TODO: Кнопка Comment -->
                 <td><textarea></textarea></td>
                 <td><button type="button"">Comment</button></td>
             </tr>

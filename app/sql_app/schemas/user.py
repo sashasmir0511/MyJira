@@ -7,7 +7,7 @@ class ReturnUser(BaseModel):
     id: Optional[int] = None
     email: EmailStr
     name: str
-
+    hash_password: str
     is_active: bool
 
 

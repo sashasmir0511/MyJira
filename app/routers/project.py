@@ -46,6 +46,8 @@ async def read_project(
     db: Session = Depends(get_db),
     #current_user: ReturnUser = Depends(get_current_user),
     ):
+    print(type(db))
+
     db_project = await get_project_by_name(name=project_name, db=db)
     dict_Response = {"request": request, "project_name": project_name, "project_id": db_project.id}
     
@@ -86,8 +88,9 @@ async def get_project_by_name(
 async def get_project_by_id(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
     ):
+    print(type(db))
     db_project = crud.get_project_by_id(db, project_id=project_id)
     if db_project is None:
         raise HTTPException(
