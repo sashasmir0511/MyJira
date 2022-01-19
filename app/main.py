@@ -1,9 +1,10 @@
 import uvicorn
 import json
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from app.routers import (
     attachment,
@@ -20,6 +21,7 @@ from app.sql_app.db.database import Base, database, engine
 
 
 app = FastAPI(title="Jira")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
@@ -45,6 +47,11 @@ async def startup():
     Base.metadata.create_all(bind=engine)
     await database.connect()
 
+# @app.get("/logout")
+# async def route_logout_and_remove_cookie():
+#     response = RedirectResponse(url="/")
+#     response.delete_cookie("Authorization", domain="localtest.me")
+#     return response
 
 @app.on_event("shutdown")
 async def shutdown():

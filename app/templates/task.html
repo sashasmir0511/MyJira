@@ -10,6 +10,7 @@
             </tr>
         </tbody>
     </table> -->
+    <a href="http://0.0.0.0:5000/project/html/n_{{project_name}}"><button>GoHome</button></a>
     <h3>{{project_name}} {{project_id}}</h3>
     <h1>{{task_name}}</h1>
     <table>
@@ -63,7 +64,10 @@
     <br>
     <td><u>http://0.0.0.0:5000/attachment/{{i}}</u></td>
     <!-- TODO: Кнопка Remove -->
-    <td><button type=" button"">Remove</button></td>
+    <form action="" onsubmit="sendMessage(event)">
+        <td><button type=" button"">Remove</button></td>
+    </form>
+    <ul id='messages'></ul>
     {% endfor %}
     <br>
     <!-- TODO: Кнопка Add attachement -->
@@ -93,6 +97,27 @@
             </tr>
         </tbody>
     </table>
+    <script>
+        var ws = new WebSocket("ws://localhost:5000/auth/ws");
+
+        ws.onmessage = function(event) {
+            try{
+                data = JSON.parse(event.data)
+                window.location.href = 'project_list'
+            }catch(er){
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            }
+        };
+        
+        function sendMessage(event) {
+            ws.send()
+            event.preventDefault()
+        }
+    </script>
 </body>
 
 </html>

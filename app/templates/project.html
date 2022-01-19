@@ -10,7 +10,7 @@
             </tr>
         </tbody>
     </table> -->
-    <a href="vk.com"><button>Text</button></a>
+    <a href="http://0.0.0.0:5000/project_list"><button>GoHome</button></a>
     <h1>{{project_name}} {{project_id}}</h1>
     <table>
         <tbody>
@@ -42,19 +42,50 @@
                 <td><b>Creator</b></td>
                 <td><b>Assignee</b></td>
             </tr>
-            {% for i in tasks_id %}
-            <tr>
-                <td><label>{{tasks_name[loop.index - 1]}} {{i}}</label></td>
-                <td><label>{{tasks_description[loop.index - 1]}}</label></td>
-                <td><u>http://0.0.0.0:5000/task/{{project_id}}/{{i}}</u></td>
-                <td><label>Elza Mingazhitdinova</label></td>
-                <td><label>No assignee</label></td>
-                <td><button type=" button"">Remove</button></td>
+                {% for i in tasks_id %}
+                <tr>
+                    <td><label>{{tasks_name[loop.index - 1]}} {{i}}</label></td>
+                    <td><label>{{tasks_description[loop.index - 1]}}</label></td>
+                    <td><a href="http://0.0.0.0:5000/task/{{project_id}}/{{i}}">http://0.0.0.0:5000/task/{{project_id}}/{{i}}</a></td>
+                    <!-- TODO -->
+                    <td><label>Elza Mingazhitdinova</label></td>
+                    <!-- <td><label>No assignee</label></td> -->
+                    <td><button type=" button"">Remove</button></td>
+                </tr>
+                {% endfor %}
             </tr>
-            {% endfor %}
-            </tr>
+            <td><b>Remove Task</b></td>
+            <form action="" onsubmit="sendMessage(event)">
+                <td><input type="text" id="remove_task" autocomplete="off"/></td>
+                <br>
+                <td><button>Remove</button></td>
+            </form>
+            <td><ul id='messages'></ul></td>
+            <ul id='messages'>
+            </ul>
+            <script>
+                var ws = new WebSocket("ws://localhost:5000/remove_task/ws");
+        
+                ws.onmessage = function(event) {
+                        var messages = document.getElementById('messages')
+                        var message = document.createElement('li')
+                        var content = document.createTextNode(event.data)
+                        message.appendChild(content)
+                        messages.appendChild(message)
+                        window.location.reload()
+
+                };
+                
+                function sendMessage(event) {
+                    var input = document.getElementById("remove_task")
+                    ws.send(JSON.stringify({task_id: input.value}))
+                    input.value = ''
+                    event.preventDefault()
+                }
+            </script>
+
             <tr>
-                <td><button type=" button"">Create task</button></td>
+                <td><a href="http://0.0.0.0:5000/create_task/{{project_id}}"><button type=" button"">Create task</button></a></td>
             </tr>
             </tr>
         </tbody>

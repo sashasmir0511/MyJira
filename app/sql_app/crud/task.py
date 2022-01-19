@@ -44,7 +44,7 @@ def get_all_tasks(db: Session, skip: int = 0, limit: int = 100) -> List[ReturnTa
     return [ReturnTask.parse_obj(to_dict(obj)) for obj in result]
 
 
-def create_task(db: Session, new_task: TaskCreate, manager_id: int) -> ReturnTask:
+def create_task(db: Session, new_task: TaskCreate, manager_id: int = 1) -> ReturnTask:
     requirement_id = get_or_create_requirement(db, new_task.requirement_link)
     db_task = models.Task(
         name=new_task.name,

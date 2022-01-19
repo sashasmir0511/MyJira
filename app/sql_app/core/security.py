@@ -1,10 +1,13 @@
 import datetime
+import requests
 
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from jose import jwt
 from passlib.context import CryptContext
+from fastapi.security.utils import get_authorization_scheme_param
+from starlette.status import HTTP_403_FORBIDDEN
 
 from .config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 

@@ -9,3 +9,5 @@ uvicorn==0.15.0
 asyncpg
 pydantic[email]
 bcrypt
+asyncio
+aiohttp

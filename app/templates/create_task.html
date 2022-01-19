@@ -1,0 +1,61 @@
+<html>
+
+<body>
+    <a href="http://0.0.0.0:5000/project/html/n_{{project_name}}"><button>GoHome</button></a>
+    <h1>{{project_name}} {{project_id}}</h1>
+    <h1>Create Task</h1>
+    <form action="" onsubmit="sendMessage(event)">
+        <table>
+            <tbody>
+                <tr>
+                    <td><label>Task name: </label></td>
+                    <td><input type="text" id="task_name" value="TEST" autocomplete="off"/></td>
+                </tr>
+                <tr>
+                    <td><label>Description: </label></td>
+                    <td><input type="text" id="description" value="TEST" autocomplete="off"/></td>
+                <tr>
+                    <td><label>Requirement link: </label></td>
+                    <td><input type="text" id="requirement_link" value="1" autocomplete="off"/></td>
+                </tr>
+                <tr>
+                    <td><label>assignee_id: </label></td>
+                    <td><input type="text" id="assignee_id" value="1" autocomplete="off"/></td>
+                </tr>
+                <td><button>Create Task</button></td>
+            </tbody>
+        </table>
+    </form>
+    <ul id='messages'>
+    </ul>
+    <script>
+        var ws = new WebSocket("ws://localhost:5000/create_task/{{project_id}}/ws");
+        
+        ws.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            console.log(event)
+        };
+        
+        function sendMessage(event) {
+            var m_task_name = document.getElementById("task_name")
+            var m_description = document.getElementById("description")
+            var m_requirement_link = document.getElementById("requirement_link")
+            var m_assignee_id = document.getElementById("assignee_id")
+            ws.send(JSON.stringify({name: m_task_name.value
+                ,description: m_description.value
+                ,requirement_link: m_requirement_link.value
+                ,assignee_id: m_assignee_id.value}))
+            m_task_name.value = ''
+            m_description.value = ''
+            m_requirement_link.value = ''
+            m_assignee_id.value = ''
+            event.preventDefault()
+        }
+    </script>
+</body>
+
+</html>

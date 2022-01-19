@@ -1,7 +1,11 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 from app.routers.comment import get_comment_by_task_id
+import json
+import requests
+import aiohttp
+import asyncio
 
 from app.routers.user import get_user_by_id
 from app.routers.requirement import get_requirement_by_id
@@ -31,6 +35,35 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+@router.websocket("/create_task/{project_id}/ws")
+async def websocket_create_task(
+    websocket: WebSocket,
+    project_id: int
+    ):
+    await websocket.accept()
+
+    data = await websocket.receive_json()
+    data["state_id"] = 1
+    data["project_id"] = project_id
+    async with aiohttp.ClientSession() as session:
+        async with session.post('http://0.0.0.0:5000/tasks', json=data) as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text(f"Fail")
+
+
+@router.get("/create_task/{project_id}", response_class=HTMLResponse)
+async def create_task(
+    request: Request,
+    project_id: int,
+    db: Session = Depends(get_db)):
+    db_project = await get_project_by_id(project_id, db=db)
+    dict_Response = {"request": request,"project_id": project_id, 'project_name': db_project.name}
+    return templates.TemplateResponse("create_task.html", dict_Response)
 
 
 @router.get("/task/{project_id}/{task_id}", response_class=HTMLResponse)
@@ -87,7 +120,7 @@ async def get_project_by_id(
 async def get_task_by_id(
     task_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
     ):
     db_task = crud.get_task_by_id(db, task_id=task_id)
     if not db_task:
@@ -131,11 +164,11 @@ async def get_tasks_by_project_id(
     return db_tasks
 
 
-@router.delete("/task/{task_id}", response_model=ReturnTask)
+@router.delete("/remove_task/{task_id}", response_model=ReturnTask)
 async def delete_task_by_id(
     task_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
     db_task = crud.delete_task_by_id(db, task_id=task_id)
     if not db_task:
@@ -163,10 +196,11 @@ async def delete_task_by_name(
 async def create_task(
     task: TaskCreate,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
-    return crud.create_task(db=db, new_task=task, manager_id=current_user.id)
-
+    return crud.create_task(db=db, new_task=task
+    # , manager_id=current_user.id)
+    )
 
 @router.patch("/tasks/{task_id}", response_model=ReturnTask)
 async def edit_task(

@@ -14,15 +14,19 @@
     <ul id='messages'>
     </ul>
     <script>
-        var ws = new WebSocket("ws://localhost:5000/ws");
-        
+        var ws = new WebSocket("ws://localhost:5000/auth/ws");
+
         ws.onmessage = function(event) {
-            var messages = document.getElementById('messages')
-            var message = document.createElement('li')
-            var content = document.createTextNode(event.data)
-            message.appendChild(content)
-            messages.appendChild(message)
-            console.log(event)
+            try{
+                data = JSON.parse(event.data)
+                window.location.href = 'project_list'
+            }catch(er){
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            }
         };
         
         function sendMessage(event) {

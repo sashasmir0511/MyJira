@@ -3,6 +3,7 @@ from app.routers.release import get_release_by_id
 from app.routers.user import get_user_by_id
 from app.routers.team_member import get_team_members_by_project_id
 from typing import List
+import aiohttp
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, Request
 from sqlalchemy.orm import Session
@@ -29,14 +30,40 @@ def get_db():
         db.close()
 
 
+@router.websocket("/remove_task/ws")
+async def websocket_create_task(websocket: WebSocket,):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    task_id = data['task_id']
+    async with aiohttp.ClientSession() as session:
+        async with session.delete(f'http://0.0.0.0:5000/remove_task/{task_id}') as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail")
+
+
 @router.get("/projects", response_model=List[ReturnProject])
 async def get_all_projects(
     db: Session = Depends(get_db),
     limit: int = 10,
     skip: int = 0,
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
     ):
     return crud.get_all_projects(db, limit=limit, skip=skip)
+
+
+@router.get("/project_list", response_class=HTMLResponse)
+async def read_project_list(
+    request: Request,
+    db: Session = Depends(get_db),
+    #current_user: ReturnUser = Depends(get_current_user)
+):
+    db_projects = await get_all_projects(db=db, limit=100)
+    dict_Response = {"request": request}
+    dict_Response["project_id"] = [project.id for project in db_projects]
+    dict_Response["project_name"] = [project.name for project in db_projects]
+    return templates.TemplateResponse("project_list.html", dict_Response)
 
 
 @router.get("/project/html/n_{project_name}", response_class=HTMLResponse)
