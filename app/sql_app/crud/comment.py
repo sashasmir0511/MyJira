@@ -30,7 +30,7 @@ def delete_comment_by_id(db: Session, comment_id: int) -> Optional[ReturnComment
         return ReturnComment.parse_obj(to_dict(result))
 
 
-def create(db: Session, new_comment: Comment, creator: int) -> ReturnComment:
+def create(db: Session, new_comment: Comment, creator: int = 1) -> ReturnComment:
     db_comment = models.Comment(
         **new_comment.dict(),
         creator_id=creator,

@@ -17,11 +17,12 @@
         <tbody>
             <tr>
                 <td><label>Status: </label></td>
-                <td><select name=" Status">
+                <td><label>{{state_id}}</label></td>
+                <!-- <td><select name=" Status">
                         <option value="">Status</option>
                         <option value="">Open</option>
                         <option value="">Closed</option>
-                    </select></td>
+                    </select></td> -->
             </tr>
             <tr>
                 <td><label>Requirements: </label></td>
@@ -33,11 +34,12 @@
             </tr>
             <tr>
                 <td><label>Assignee: </label></td>
-                <td><select name="No assignee">
+                <td><label>{{assignee_name}} </label></td>
+                <!-- <td><select name="No assignee">
                     <option value="">Elizaveta Povarova</option>
                     <option value="">Elza Mingazhitdinova</option>
                     <option value="">Denis Tsapaev</option>
-                </select></td>
+                </select></td> -->
             </tr>
             <tr>
                 <td><label>Created at: </label></td>
@@ -63,58 +65,85 @@
     {% for i in attachment_id %}
     <br>
     <td><u>http://0.0.0.0:5000/attachment/{{i}}</u></td>
-    <!-- TODO: Кнопка Remove -->
-    <form action="" onsubmit="sendMessage(event)">
-        <td><button type=" button"">Remove</button></td>
-    </form>
-    <ul id='messages'></ul>
     {% endfor %}
     <br>
     <!-- TODO: Кнопка Add attachement -->
     <button type=" button"">Add attachement</button>
-        <br>
-        <br>
-        <table>
-            <tbody>
-                <tr>
-                    <td>
-                        <b>Comments</b>
-                    </td>
-                    <td></td>
-                </tr>
+    <br>
+    <br>
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <b>Comments</b>
+                </td>
+                <td></td>
+            </tr>
             <tr>
                 {% for i in comments_id %}
                 <tr>
+                    <td><label>{{i}}</label></td>
                     <td><label>{{comments_message[loop.index - 1]}}</label></td>
                     <td><label>{{comments_created_at[loop.index - 1]}}</label></td>
-                    <!-- TODO: Кнопка Remove -->
-                    <td><button type=" button"">Remove</button></td>
+                    <!-- <td><button type="button"">Remove</button></td> -->
                 </tr>
                 {% endfor %}
-                <!-- TODO: Кнопка Comment -->
-                <td><textarea></textarea></td>
-                <td><button type="button"">Comment</button></td>
+                <br>
+                
             </tr>
         </tbody>
     </table>
+    <td><b>Create Comment</b></td>
+    <form action="" onsubmit="form_createComment(event)">
+        <td><label>task_id: </label></td>
+        <td><input type="text" id="task_id" value={{task_id}} autocomplete="off"/></td>
+        <td><label>Comment_id: </label></td>
+        <td><input type="text" id="new_comment" value="Let's stop it!" autocomplete="off"/></td>
+        <td><button>Comment</button></td>
+    </form>
+    <td><b>Remove Comment</b></td>
+    <form action="" onsubmit="form_removeComment(event)">
+        <td><label>id:</label></td>
+        <td><input type="text" id="comment_id" autocomplete="off"/></td>
+        <td><button>Remove</button></td>
+    </form>
+    <td><ul id='messages'></ul></td>
     <script>
-        var ws = new WebSocket("ws://localhost:5000/auth/ws");
+        var ws_r = new WebSocket("ws://localhost:5000/remove_comment/ws");
+        var ws_c = new WebSocket("ws://localhost:5000/create_comment/ws");
 
-        ws.onmessage = function(event) {
-            try{
-                data = JSON.parse(event.data)
-                window.location.href = 'project_list'
-            }catch(er){
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            }
+        ws_r.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            window.location.reload()
         };
-        
-        function sendMessage(event) {
-            ws.send()
+        ws_c.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            window.location.reload()
+        };
+
+        function form_createComment(event) {
+            var m_create_comment_name = document.getElementById("new_comment")
+            var m_task_id = document.getElementById("task_id")
+            ws_c.send(JSON.stringify({message: m_create_comment_name.value
+                                    ,task_id: m_task_id.value
+                                    }))
+            m_create_comment_name.value = ''
+            m_task_id.value = ''
+            event.preventDefault()
+        }
+
+        function form_removeComment(event) {
+            var remove_comment_id = document.getElementById("comment_id")
+            ws_r.send(JSON.stringify({comment_id: remove_comment_id.value}))
+            remove_comment_id.value = ''
             event.preventDefault()
         }
     </script>

@@ -37,7 +37,7 @@ async def get_all_roles(
 async def get_role_by_id(
     role_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    # current_user: ReturnUser = Depends(get_current_user),
 ):
     role = crud.get_role_by_id(db, role_id=role_id)
     if role is None:

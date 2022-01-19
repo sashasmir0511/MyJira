@@ -11,7 +11,7 @@
         </tbody>
     </table> -->
     <a href="http://0.0.0.0:5000/project_list"><button>GoHome</button></a>
-    <h1>{{project_name}} {{project_id}}</h1>
+    <h1>{{project_id}}) {{project_name}}</h1>
     <table>
         <tbody>
             <tr>
@@ -31,12 +31,13 @@
     <br>
     <b>Description:</b>
     <br>
-    <textarea>{{release_discription}}</textarea>
+    <textarea>{{project_discription}}</textarea>
     <br>
     <br>
     <table>
         <tbody>
             <tr>
+                <td><b>Id</b></td>
                 <td><b>Name</b></td>
                 <td><b>Link</b></td>
                 <td><b>Creator</b></td>
@@ -44,52 +45,29 @@
             </tr>
                 {% for i in tasks_id %}
                 <tr>
-                    <td><label>{{tasks_name[loop.index - 1]}} {{i}}</label></td>
+                    <td><label>{{i}}</label></td>
+                    <td><label>{{tasks_name[loop.index - 1]}}</label></td>
                     <td><label>{{tasks_description[loop.index - 1]}}</label></td>
                     <td><a href="http://0.0.0.0:5000/task/{{project_id}}/{{i}}">http://0.0.0.0:5000/task/{{project_id}}/{{i}}</a></td>
                     <!-- TODO -->
                     <td><label>Elza Mingazhitdinova</label></td>
                     <!-- <td><label>No assignee</label></td> -->
-                    <td><button type=" button"">Remove</button></td>
                 </tr>
                 {% endfor %}
             </tr>
-            <td><b>Remove Task</b></td>
-            <form action="" onsubmit="sendMessage(event)">
-                <td><input type="text" id="remove_task" autocomplete="off"/></td>
-                <br>
-                <td><button>Remove</button></td>
-            </form>
-            <td><ul id='messages'></ul></td>
-            <ul id='messages'>
-            </ul>
-            <script>
-                var ws = new WebSocket("ws://localhost:5000/remove_task/ws");
-        
-                ws.onmessage = function(event) {
-                        var messages = document.getElementById('messages')
-                        var message = document.createElement('li')
-                        var content = document.createTextNode(event.data)
-                        message.appendChild(content)
-                        messages.appendChild(message)
-                        window.location.reload()
-
-                };
-                
-                function sendMessage(event) {
-                    var input = document.getElementById("remove_task")
-                    ws.send(JSON.stringify({task_id: input.value}))
-                    input.value = ''
-                    event.preventDefault()
-                }
-            </script>
-
             <tr>
                 <td><a href="http://0.0.0.0:5000/create_task/{{project_id}}"><button type=" button"">Create task</button></a></td>
             </tr>
             </tr>
         </tbody>
     </table>
+    <br><br>
+    <td><b>Remove Task</b></td>
+    <form action="" onsubmit="sendMessage(event)">
+        <td><input type="text" id="remove_task" autocomplete="off"/></td>
+        <td><button>Remove</button></td>
+    </form>
+    <td><ul id='messages'></ul></td>
     <br>
     <br>
     <b>Team members</b>
@@ -97,11 +75,12 @@
     <table>
         <tbody>
             <tr>
+                <td><b>Id</b></td>
                 <td><b>Name</b></td>
                 <td><b>Is manager</b></td>
                 <td><b>Is active</b></td>
-                <td><b>Role_1</b></td>
-                <td><b>Role_2</b></td>
+                <td><b>Role</b></td>
+                <!-- <td><b>Role_2</b></td> -->
                 <td><b></b></td>
             </tr>
             <tr>
@@ -109,30 +88,106 @@
 
                 {% for i in team_member_name %}
                 <tr>
+                    <td><label>{{team_member_id[loop.index - 1]}}</label></td>
                     <td><label>{{i}}</label></td>
-                    <td><select name="">
+                    <td><label>{{team_member_is_manager[loop.index - 1]}}</label></td>
+                    <td><label>{{team_member_is_active[loop.index - 1]}}</label></td>
+                    <td><label>{{team_member_role[loop.index - 1]}}</label></td>
+                    <!-- <td><select name="">
                         <option value="">no</option>
                         <option value="">yes</option>
-                    </select></td>
-                    <td><select name="">
+                    </select></td> -->
+                    <!-- <td><select name="">
                         <option value="">yes</option>
-                        <option value="">no</option>
-                    </select></td>
+                        <option value="">no</option> -->
+                    <!-- </select></td>
                     <td><select name="">
                         <option value="">Frontend developer</option>
                         <option value="">Backend developer</option>
                         <option value="">DB designer, architector</option>
                         <option value="">Project leader</option>
                         <option value="">Tech lead, architector</option>
-                        </select></td>
-                    <td><button type=" button"">Save</button></td>
-                    <td><button type=" button"">Remove</button></td>
+                        </select></td> -->
+                    <!-- <td><button type=" button"">Save</button></td> -->
+                    <!-- <td><button type=" button"">Remove</button></td> -->
                 </tr>
                 {% endfor %}
             </tr>
         </tbody>
     </table>
+    <br>
+    <td><b>Remove Team members</b></td>
+    <form action="" onsubmit="form_removeTeamMembers(event)">
+        <td><label>id_TeamMembers: </label></td>
+        <td><input type="text" id="removeTeamMembers" autocomplete="off"/></td>
+        <td><button>Remove</button></td>
+    </form>
+    <td><b>Create Team members</b></td>
+    <form action="" onsubmit="form_CreateTeamMembers(event)">
+        <td><input type="text" id="project_id" value={{project_id}} autocomplete="off"/></td>
+        <td><label>user_id: </label></td>
+        <td><input type="text" id="user_id" autocomplete="off"/></td>
+        <td><label>role_id: </label></td>
+        <td><input type="text" id="role_id" autocomplete="off"/></td>
+        <td><button>Create TeamMembers</button></td>
+    </form>
+    <script>
+        var ws = new WebSocket("ws://localhost:5000/remove_task/ws");
+        var ws_r = new WebSocket("ws://localhost:5000/remove_TeamMembers/ws");
+        var ws_c = new WebSocket("ws://localhost:5000/create_TeamMembers/ws");
+        
+        ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+                window.location.reload()
+        };
+        ws_r.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+                window.location.reload()
+        };
+        ws_c.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+                window.location.reload()
+        };
 
+        function sendMessage(event) {
+            var input = document.getElementById("remove_task")
+            ws.send(JSON.stringify({task_id: input.value}))
+            input.value = ''
+            event.preventDefault()
+        }
+
+        function form_removeTeamMembers(event) {
+            var remove_TeamMembers = document.getElementById("removeTeamMembers")
+            ws_r.send(JSON.stringify({TeamMembers_id: remove_TeamMembers.value}))
+            remove_TeamMembers.value = ''
+            event.preventDefault()
+        }
+
+        function form_CreateTeamMembers(event) {
+            var id_TeamMembers = document.getElementById("user_id")
+            var role_TeamMembers = document.getElementById("role_id")
+            var curr_project_id = document.getElementById("project_id")
+            ws_c.send(JSON.stringify({user_id: id_TeamMembers.value
+                                    ,role_id: role_TeamMembers.value
+                                    ,project_id: curr_project_id.value
+                                    }))
+            id_TeamMembers.value = ''
+            role_TeamMembers.value = ''
+            event.preventDefault()
+        }
+    </script>
 </body>
 
 

@@ -1,6 +1,7 @@
 from typing import List
+import aiohttp
 
-from fastapi import HTTPException
+from fastapi import HTTPException, WebSocket
 from fastapi.params import Depends
 from fastapi.routing import APIRouter
 from sqlalchemy.orm import Session
@@ -21,6 +22,35 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.websocket("/create_TeamMembers/ws")
+async def websocket_create_TeamMembers(websocket: WebSocket,):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    data["is_manager"] = False
+    data["is_active"] = True
+    print(data)
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f'http://0.0.0.0:5000/team_member', json=data) as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail remove team_member")
+
+
+@router.websocket("/remove_TeamMembers/ws")
+async def websocket_remove_TeamMembers(websocket: WebSocket,):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    team_member_id = data["TeamMembers_id"]
+    print(team_member_id)
+    async with aiohttp.ClientSession() as session:
+        async with session.delete(f'http://0.0.0.0:5000/team_member/{team_member_id}') as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail remove team_member")
 
 
 @router.get("/team_members", response_model=List[ReturnTeamMember])
@@ -73,7 +103,7 @@ async def get_team_member_by_user_name(
 async def delete_team_member_by_id(
     team_member_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
 ):
     team_member = crud.delete_team_member_by_id(db, team_member_id=team_member_id)
     if team_member is None:

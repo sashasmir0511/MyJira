@@ -28,7 +28,7 @@ async def get_all_releases(
     db: Session = Depends(get_db),
     limit: int = 10,
     skip: int = 0,
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
 ):
     return crud.get_all_releases(db, limit=limit, skip=skip)
 
@@ -93,7 +93,7 @@ async def delete_release_by_id(
 async def create_release(
     new_release: Release,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
 ):
     return crud.create(db, new_release=new_release)
 

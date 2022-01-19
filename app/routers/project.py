@@ -1,4 +1,6 @@
+import json
 from app.routers.task import get_tasks_by_project_id
+from app.routers.role import get_role_by_id
 from app.routers.release import get_release_by_id
 from app.routers.user import get_user_by_id
 from app.routers.team_member import get_team_members_by_project_id
@@ -30,17 +32,38 @@ def get_db():
         db.close()
 
 
-@router.websocket("/remove_task/ws")
-async def websocket_create_task(websocket: WebSocket,):
+@router.websocket("/remove_project/ws")
+async def websocket_remove_project(websocket: WebSocket,):
     await websocket.accept()
     data = await websocket.receive_json()
-    task_id = data['task_id']
+    project_id = data["project_id"]
     async with aiohttp.ClientSession() as session:
-        async with session.delete(f'http://0.0.0.0:5000/remove_task/{task_id}') as response:
+        async with session.delete(f'http://0.0.0.0:5000/delete_project/{project_id}') as response:
             if response.status == 200:
                 await websocket.send_text("OK")
             else:
-                await websocket.send_text("Fail")
+                await websocket.send_text("Fail Project")
+
+
+@router.websocket("/create_project/ws")
+async def websocket_create_project(websocket: WebSocket,):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    project_data = {"name": data["project_name"]
+                    , "description": data["description"]
+                    , "release_id": data["release_id"]}
+    # release_data = {"name": data["release_name"]
+    #                 ,"description": data["release_description"]
+    #                 ,"release_date": data["release_data"]}
+    async with aiohttp.ClientSession() as session:
+        # async with session.post(f'http://0.0.0.0:5000/release', json=release_data) as response:
+        #     if response.status == 200:
+        #         project_data["release_id"] = response.json()["release_id"]
+        async with session.post(f'http://0.0.0.0:5000/project', json=project_data) as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail Project")
 
 
 @router.get("/projects", response_model=List[ReturnProject])
@@ -58,7 +81,7 @@ async def read_project_list(
     request: Request,
     db: Session = Depends(get_db),
     #current_user: ReturnUser = Depends(get_current_user)
-):
+    ):
     db_projects = await get_all_projects(db=db, limit=100)
     dict_Response = {"request": request}
     dict_Response["project_id"] = [project.id for project in db_projects]
@@ -73,11 +96,11 @@ async def read_project(
     db: Session = Depends(get_db),
     #current_user: ReturnUser = Depends(get_current_user),
     ):
-    print(type(db))
 
     db_project = await get_project_by_name(name=project_name, db=db)
     dict_Response = {"request": request, "project_name": project_name, "project_id": db_project.id}
-    
+    dict_Response['project_discription'] = db_project.description
+
     db_user = await get_user_by_id(user_id=db_project.creator_id, db=db)
     dict_Response["creator_name"] = db_user.name
     
@@ -93,7 +116,12 @@ async def read_project(
 
     db_team_member = await get_team_members_by_project_id(db_project.id, db=db)
     db_team_member_name = [ await get_user_by_id(i.user_id, db=db) for i in db_team_member]
+    db_role = [ await get_role_by_id(i.role_id, db=db) for i in db_team_member]
+    dict_Response['team_member_id'] = [i.id for i in db_team_member]
+    dict_Response['team_member_is_manager'] = [i.is_manager for i in db_team_member]
+    dict_Response['team_member_is_active'] = [i.is_active for i in db_team_member]
     dict_Response['team_member_name'] = [i.name for i in db_team_member_name]
+    dict_Response['team_member_role'] = [i.name for i in db_role]
     return templates.TemplateResponse("project.html", dict_Response)
 
 
@@ -117,7 +145,6 @@ async def get_project_by_id(
     db: Session = Depends(get_db),
     #current_user: ReturnUser = Depends(get_current_user),
     ):
-    print(type(db))
     db_project = crud.get_project_by_id(db, project_id=project_id)
     if db_project is None:
         raise HTTPException(
@@ -126,11 +153,11 @@ async def get_project_by_id(
     return db_project
 
 
-@router.delete("/project/{project_id}", response_model=ReturnProject)
+@router.delete("/delete_project/{project_id}", response_model=ReturnProject)
 async def delete_project_by_id(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
     db_project = crud.delete_project_by_id(db, project_id=project_id)
     if db_project is None:
@@ -168,9 +195,11 @@ async def task_projects(
 async def create_project(
     project: ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
-    return crud.create_project(db=db, new_project=project, creator_id=current_user.id)
+    return crud.create_project(db=db, new_project=project
+    # , creator_id=current_user.id
+    )
 
 
 @router.patch("/project/{project_id}", response_model=ReturnProject)

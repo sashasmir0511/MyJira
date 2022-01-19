@@ -9,6 +9,7 @@ import asyncio
 
 from app.routers.user import get_user_by_id
 from app.routers.requirement import get_requirement_by_id
+from app.routers.team_member import get_team_member_by_id
 #from app.routers.attachment import get_attachments_by_task_id
 from ..sql_app.schemas.project import ReturnProject
 from fastapi.responses import HTMLResponse
@@ -37,14 +38,26 @@ def get_db():
         db.close()
 
 
+@router.websocket("/remove_task/ws")
+async def websocket_create_task(websocket: WebSocket,):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    task_id = data['task_id']
+    print(data)
+    async with aiohttp.ClientSession() as session:
+        async with session.delete(f'http://0.0.0.0:5000/remove_task/{task_id}') as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail")
 
+                
 @router.websocket("/create_task/{project_id}/ws")
 async def websocket_create_task(
     websocket: WebSocket,
     project_id: int
     ):
     await websocket.accept()
-
     data = await websocket.receive_json()
     data["state_id"] = 1
     data["project_id"] = project_id
@@ -77,12 +90,17 @@ async def read_task(
                      "project_id": project_id, "task_id": task_id}
     db_task = await get_task_by_id(task_id, db=db)
     dict_Response['task_name'] = db_task.name
+    dict_Response['state_id'] = db_task.state_id
     dict_Response['description'] = db_task.description
     dict_Response['created_at'] = db_task.created_at
     dict_Response['updated_at'] = db_task.updated_at
     
     db_user_manager = await get_user_by_id(db_task.manager_id, db=db)
     dict_Response['manager'] = db_user_manager.name
+
+    db_team_member = await get_team_member_by_id(db_task.assignee_id, db=db)
+    db_user = await get_user_by_id(db_team_member.user_id, db=db)
+    dict_Response['assignee_name'] = db_user.name
 
     db_project = await get_project_by_id(project_id, db=db)
     dict_Response['project_name'] = db_project.name

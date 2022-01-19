@@ -50,7 +50,7 @@ def get_all_projects(
 
 
 def create_project(
-    db: Session, new_project: ProjectCreate, creator_id: int
+    db: Session, new_project: ProjectCreate, creator_id: int = 1
 ) -> ReturnProject:
     db_project = models.Project(**new_project.dict(), creator_id=creator_id)
     db.add(db_project)

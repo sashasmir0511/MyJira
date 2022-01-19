@@ -11,42 +11,93 @@
         </tbody>
     </table> -->
     <h1>Projects management</h1>
-    <table>
-        <tbody>
-            <tr>
-                <td><textarea placeholder="Project name"></textarea></td>
-                <td><textarea placeholder="Description"></textarea></td>
-            </tr>
-            <tr>
-                <td><textarea placeholder="Release date"></textarea></td>
-                <td><textarea placeholder="Release link"></textarea></td>
-            </tr>
-        </tbody>
-    </table>
-    <button type=" button">Create project</button>
+    <form action="" onsubmit="sendMessage(event)">
+        <table>
+            <tbody>
+                <tr>
+                    <td><label>Project name: </label></td>
+                    <td><textarea placeholder="Project name" id="project_name">TEST</textarea></td>
+                </tr>
+                <tr>
+                    <td><label>Description: </label></td>
+                    <td><textarea placeholder="Description" id="description">TEST</textarea></td>
+                </tr>
+                <tr>
+                    <td><label>Release id: </label></td>
+                    <td><textarea placeholder="Release id" id="release_id">4</textarea></td>
+                </tr>
+            </tbody>
+            <td><button type=" button">Create project</button></td>
+        </table>
+    </form>
+    <ul id='messages'></ul>
+    <script>
+        var ws = new WebSocket("ws://localhost:5000/create_project/ws");
+        var ws_r = new WebSocket("ws://localhost:5000/remove_project/ws");
+
+        ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+                window.location.reload()
+        };
+        ws_r.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+                window.location.reload()
+        };
+        
+        function sendMessage(event) {
+            var m_project_name = document.getElementById("project_name")
+            var m_description = document.getElementById("description")
+            var m_release_id = document.getElementById("release_id")
+            ws.send(JSON.stringify({project_name: m_project_name.value
+                                    ,description: m_description.value
+                                    ,release_id: m_release_id.value
+                                    // ,release_name: m_release_name.value
+                                    // ,release_data: m_release_data.value
+                                    // ,release_description: m_release_description.value
+                                }))
+            m_project_name.value = ''
+            m_description.value = ''
+            m_release_id.value = ''
+            event.preventDefault()
+        }
+
+        function removeMessage(event) {
+            var m_project_id = document.getElementById("remove_project")
+            ws_r.send(JSON.stringify({project_id: m_project_id.value}))
+            m_project_id.value = ''
+            event.preventDefault()
+        }
+    </script>
+
     <h3>Project list</h3>
     <table>
         <tbody>
             {% for i in project_id %}
             <tr>
-                <td><a href="/project/html/n_{{project_name[loop.index - 1]}}">{{ project_name[loop.index - 1] }}</a></td>
-                <td><button type=" button"">Remove</button></td>
+                <td><a href="/project/html/n_{{project_name[loop.index - 1]}}">{{i}} {{ project_name[loop.index - 1] }}</a></td>
+                <!-- <td><button type=" button"">Remove</button></td> -->
             </tr>
             {% endfor %}
-            <tr>
-                <td><b>Project name #123</b></td>
-                <td><button type=" button"">Remove</button></td>
-            </tr>
-            <tr>
-                <td><b>Project name #321</b> </td>
-                <td><button type=" button"">Remove</button></td>
-            </tr>
-            <tr>
-                <td><b>Project name #231</b> </td>
-                <td><button type=" button"">Remove</button></td>
-            </tr>
         </tbody>
     </table>
+    <br>
+    <td><b>Remove Project</b></td>
+    <br><br>
+    <form action="" onsubmit="removeMessage(event)">
+        <td><input type="text" id="remove_project" autocomplete="off"/></td>
+        <br>
+        <br>
+        <td><button>Remove</button></td>
+        <br>
+    </form>
 </body>
 
 </html>
