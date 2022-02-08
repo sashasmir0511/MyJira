@@ -37,12 +37,14 @@ async def websocket_create_task(websocket: WebSocket,):
                 await websocket.send_text("Fail")
 
 
-@router.websocket("/create_comment/ws")
-async def websocket_create_task(
+@router.websocket("/create_comment/{task_id}/ws")
+async def websocket_create_comment(
     websocket: WebSocket,
+    task_id: int,
     ):
     await websocket.accept()
     data = await websocket.receive_json()
+    data["task_id"] = task_id
     data["prev_state_id"] = 1
     print(data)
     async with aiohttp.ClientSession() as session:

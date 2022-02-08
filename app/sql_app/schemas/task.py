@@ -19,8 +19,10 @@ class TaskCreate(TaskBase):
     pass
 
 
-class TaskEdit(TaskBase):
-    finished_at: Optional[datetime] = None
+class TaskEdit(BaseModel):
+    state_id: Optional[State]
+    assignee_id: Optional[int] = None
+    assignee_name: Optional[str] = None
 
 
 class ReturnTask(BaseModel):

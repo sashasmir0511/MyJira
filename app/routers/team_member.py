@@ -7,6 +7,8 @@ from fastapi.routing import APIRouter
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.routers.role import get_role_by_name
+
 from ..sql_app.crud import team_member as crud
 from ..sql_app.db.database import SessionLocal
 from ..sql_app.schemas.team_member import ReturnTeamMember, TeamMember
@@ -24,27 +26,40 @@ def get_db():
         db.close()
 
 
-@router.websocket("/create_TeamMembers/ws")
-async def websocket_create_TeamMembers(websocket: WebSocket,):
+@router.websocket("/create_TeamMember/{project_id}/ws")
+async def websocket_create_TeamMembers(
+    websocket: WebSocket,
+    project_id: int,
+    ):
     await websocket.accept()
     data = await websocket.receive_json()
+    data["project_id"] = project_id
     data["is_manager"] = False
     data["is_active"] = True
-    print(data)
+    role_name = data["role_name"]
+    user_name = data["user_name"]
+    del data["user_name"]
     async with aiohttp.ClientSession() as session:
-        async with session.post(f'http://0.0.0.0:5000/team_member', json=data) as response:
+        async with session.get(f'http://0.0.0.0:5000/role_name/{role_name}') as response:
             if response.status == 200:
-                await websocket.send_text("OK")
+                token = await response.json()
+                data["role_id"] = token['id']
+                del data['role_name']
+                print(data)
+                async with session.post(f'http://0.0.0.0:5000/create_team_member/{user_name}', json=data) as response:
+                    if response.status == 200:
+                        await websocket.send_text("OK")
+                    else:
+                        await websocket.send_text("Fail create team_member")
             else:
-                await websocket.send_text("Fail remove team_member")
+                await websocket.send_text("Fail not role")
 
 
-@router.websocket("/remove_TeamMembers/ws")
+@router.websocket("/remove_TeamMember/ws")
 async def websocket_remove_TeamMembers(websocket: WebSocket,):
     await websocket.accept()
     data = await websocket.receive_json()
     team_member_id = data["TeamMembers_id"]
-    print(team_member_id)
     async with aiohttp.ClientSession() as session:
         async with session.delete(f'http://0.0.0.0:5000/team_member/{team_member_id}') as response:
             if response.status == 200:
@@ -75,7 +90,7 @@ async def get_team_members_by_project_id(
 async def get_team_member_by_id(
     team_member_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
 ):
     team_member = crud.get_team_member_by_id(db, team_member_id=team_member_id)
     if team_member is None:
@@ -89,7 +104,7 @@ async def get_team_member_by_id(
 async def get_team_member_by_user_name(
     name: str,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
 ):
     team_member = crud.get_team_member_by_user_name(db, name=name)
     if team_member is None:
@@ -127,12 +142,16 @@ async def delete_team_member_by_user_name(
     return team_member
 
 
-@router.post("/team_member", response_model=ReturnTeamMember)
+@router.post("/create_team_member/{user_name}", response_model=ReturnTeamMember)
 async def create_team_member(
+    user_name: str,
     new_team_member: TeamMember,
     db: Session = Depends(get_db),
 #    current_user: ReturnUser = Depends(is_manager),
 ):
+    db_user = await get_team_member_by_user_name(db=db, name=user_name)
+    new_team_member.user_id = db_user.user_id
+    print(new_team_member)
     return crud.create(db, new_team_member=new_team_member)
 
 
@@ -141,7 +160,7 @@ async def update_team_member(
     team_member_id: int,
     new_team_member: TeamMember,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
 ):
     team_member = crud.update(
         db, new_team_member=new_team_member, team_member_id=team_member_id

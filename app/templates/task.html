@@ -11,56 +11,56 @@
         </tbody>
     </table> -->
     <a href="http://0.0.0.0:5000/project/html/n_{{project_name}}"><button>GoHome</button></a>
-    <h3>{{project_name}} {{project_id}}</h3>
+    <h3>{{project_name}}</h3>
     <h1>{{task_name}}</h1>
     <table>
         <tbody>
-            <tr>
-                <td><label>Status: </label></td>
-                <td><label>{{state_id}}</label></td>
-                <!-- <td><select name=" Status">
-                        <option value="">Status</option>
-                        <option value="">Open</option>
-                        <option value="">Closed</option>
-                    </select></td> -->
-            </tr>
-            <tr>
-                <td><label>Requirements: </label></td>
-                <td><textarea>{{requirement_link}}</textarea></td>
-            </tr>
-            <tr>
-                <td><label>Manager: </label></td>
-                <td><label>{{manager}}</label></td>
-            </tr>
-            <tr>
-                <td><label>Assignee: </label></td>
-                <td><label>{{assignee_name}} </label></td>
-                <!-- <td><select name="No assignee">
-                    <option value="">Elizaveta Povarova</option>
-                    <option value="">Elza Mingazhitdinova</option>
-                    <option value="">Denis Tsapaev</option>
-                </select></td> -->
-            </tr>
-            <tr>
-                <td><label>Created at: </label></td>
-                <td><label>{{created_at}}</label></td>
-            </tr>
-            <tr>
-                <td><label>Last update: </label></td>
-                <td><label>{{updated_at}}</label></td>
-            </tr>
+            <form action="" onsubmit="form_updateTask(event)">
+                <tr>
+                    <td><label>Status: </label></td>
+                    <!-- <td><textarea placeholder="Task status" id="state_id">{{state_id}}</textarea></td> -->
+                    <td><input type="text" id="state_id" value={{state_name}} autocomplete="off"/></td>
+                </tr>
+                <tr>
+                    <td><label>Requirements: </label></td>
+                    <td><label>{{requirement_link}}</label></td>
+                </tr>
+                <tr>
+                    <td><label>Manager: </label></td>
+                    <td><label>{{manager}}</label></td>
+                </tr>
+                <tr>
+                    <td><label>Assignee: </label></td>
+                    <!-- <td><label>{{assignee_name}} </label></td> -->
+                    <!-- <td><input type="text" id="assignee_name" value={{assignee_name}} autocomplete="off"/></td> -->
+                    <td><textarea placeholder="Assignee name" id="assignee_name">{{assignee_name}}</textarea></td>
+                </tr>
+                <tr>
+                    <td><label>Created at: </label></td>
+                    <td><label>{{created_at}}</label></td>
+                    <!-- <td><textarea placeholder="Created at" id="created_at">{{created_at}}</textarea></td> -->
+                    <!-- <td><input type="text" id="created_at" value={{created_at}} autocomplete="off"/></td> -->
+                </tr>
+                <tr>
+                    <td><label>Last update: </label></td>
+                    <td><label>{{updated_at}}</label></td>
+                    <!-- <td><input type="text" id="updated_at" value={{updated_at}} autocomplete="off"/></td> -->
+                    <!-- <td><textarea placeholder="Updated at" id="updated_at">{{updated_at}}</textarea></td> -->
+                </tr>
+                <td><button>Save</button></td>
+            </form>
         </tbody>
     </table>
     <br>
     <b>Description:</b>
     <br>
-    <textarea>{{description}}</textarea>
-    <br>
-    <br>
-    <!-- TODO: Кнопка Save -->
-    <td><button type="button"">Save</button></td>
-    <br>
-    <br>
+    <form action="" onsubmit="form_updateDiscription(event)">
+        <!-- <td><input type="text" id="i_task_discription" value={{description}} autocomplete="off"/></td> -->
+        <td><textarea placeholder="Task discription" id="i_task_discription">{{description}}</textarea></td>
+        <br>
+        <td><button>Save</button></td>
+    </form>
+
     <b>Attachements:</b>
     {% for i in attachment_id %}
     <br>
@@ -89,15 +89,13 @@
                 </tr>
                 {% endfor %}
                 <br>
-                
             </tr>
         </tbody>
     </table>
+    <br>
     <td><b>Create Comment</b></td>
     <form action="" onsubmit="form_createComment(event)">
-        <td><label>task_id: </label></td>
-        <td><input type="text" id="task_id" value={{task_id}} autocomplete="off"/></td>
-        <td><label>Comment_id: </label></td>
+        <td><label>Comment: </label></td>
         <td><input type="text" id="new_comment" value="Let's stop it!" autocomplete="off"/></td>
         <td><button>Comment</button></td>
     </form>
@@ -110,7 +108,9 @@
     <td><ul id='messages'></ul></td>
     <script>
         var ws_r = new WebSocket("ws://localhost:5000/remove_comment/ws");
-        var ws_c = new WebSocket("ws://localhost:5000/create_comment/ws");
+        var ws_c = new WebSocket("ws://localhost:5000/create_comment/{{task_id}}/ws");
+        var ws_u = new WebSocket("ws://localhost:5000/update_task_description/{{task_id}}/ws");
+        var ws_ut = new WebSocket("ws://localhost:5000/update_task/{{task_id}}/ws");
 
         ws_r.onmessage = function(event) {
             var messages = document.getElementById('messages')
@@ -118,7 +118,7 @@
             var content = document.createTextNode(event.data)
             message.appendChild(content)
             messages.appendChild(message)
-            window.location.reload()
+            if (content.textContent == "OK") window.location.reload()
         };
         ws_c.onmessage = function(event) {
             var messages = document.getElementById('messages')
@@ -126,17 +126,29 @@
             var content = document.createTextNode(event.data)
             message.appendChild(content)
             messages.appendChild(message)
-            window.location.reload()
+            if (content.textContent == "OK") window.location.reload()
+        };
+        ws_u.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            if (content.textContent == "OK") window.location.reload()
+        };
+        ws_ut.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            if (content.textContent == "OK") window.location.reload()
         };
 
         function form_createComment(event) {
             var m_create_comment_name = document.getElementById("new_comment")
-            var m_task_id = document.getElementById("task_id")
-            ws_c.send(JSON.stringify({message: m_create_comment_name.value
-                                    ,task_id: m_task_id.value
-                                    }))
+            ws_c.send(JSON.stringify({message: m_create_comment_name.value}))
             m_create_comment_name.value = ''
-            m_task_id.value = ''
             event.preventDefault()
         }
 
@@ -144,6 +156,24 @@
             var remove_comment_id = document.getElementById("comment_id")
             ws_r.send(JSON.stringify({comment_id: remove_comment_id.value}))
             remove_comment_id.value = ''
+            event.preventDefault()
+        }
+        
+        function form_updateDiscription(event) {
+            var m_task_discription = document.getElementById("i_task_discription")
+            ws_u.send(JSON.stringify({description: m_task_discription.value}))
+            m_task_discription.value = ''
+            event.preventDefault()
+        }
+
+        function form_updateTask(event) {
+            var m_state_id = document.getElementById("state_id")
+            var m_assignee_name = document.getElementById("assignee_name")
+            ws_ut.send(JSON.stringify({state_id: m_state_id.value
+                                    ,assignee_name: m_assignee_name.value
+                                }))
+            m_state_id.value = ''
+            m_assignee_name.value = ''
             event.preventDefault()
         }
     </script>

@@ -9,7 +9,8 @@ import asyncio
 
 from app.routers.user import get_user_by_id
 from app.routers.requirement import get_requirement_by_id
-from app.routers.team_member import get_team_member_by_id
+from app.routers.team_member import get_team_member_by_id, get_team_member_by_user_name
+from app.sql_app.db.models import State
 #from app.routers.attachment import get_attachments_by_task_id
 from ..sql_app.schemas.project import ReturnProject
 from fastapi.responses import HTMLResponse
@@ -36,6 +37,57 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@router.websocket("/update_task/{task_id}/ws")
+async def websocket_update_task(
+    websocket: WebSocket,
+    task_id: int
+    ):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    for s in State:
+        if 'State.' + s.name == data["state_id"]:
+            data["state_id"] = s.value
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(f'http://0.0.0.0:5000/update_task/{task_id}', json=data) as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail")
+
+
+@router.patch("/update_task/{task_id}", response_model=ReturnTask)
+async def edit_task(
+    task_id: int,
+    task: TaskEdit,
+    db: Session = Depends(get_db),
+    #current_user: ReturnUser = Depends(is_manager),
+    ):
+    db_team_member = await get_team_member_by_user_name(db=db, name=task.assignee_name)
+    task.assignee_id = db_team_member.id
+    db_task = crud.edit_task(db=db, new_task=task, task_id=task_id)
+    if db_task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
+    return db_task
+
+
+@router.websocket("/update_task_description/{task_id}/ws")
+async def websocket_update_task_description(
+    websocket: WebSocket,
+    task_id: int
+    ):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    description = data["description"]
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(f'http://0.0.0.0:5000/update_task_description/{task_id}/{description}') as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail")
 
 
 @router.websocket("/remove_task/ws")
@@ -90,7 +142,8 @@ async def read_task(
                      "project_id": project_id, "task_id": task_id}
     db_task = await get_task_by_id(task_id, db=db)
     dict_Response['task_name'] = db_task.name
-    dict_Response['state_id'] = db_task.state_id
+    dict_Response['state_id'] = db_task.state_id.value
+    dict_Response['state_name'] = db_task.state_id
     dict_Response['description'] = db_task.description
     dict_Response['created_at'] = db_task.created_at
     dict_Response['updated_at'] = db_task.updated_at
@@ -200,7 +253,7 @@ async def delete_task_by_id(
 async def delete_task_by_name(
     name: str,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
     db_task = crud.delete_task_by_name(db, name=name)
     if not db_task:
@@ -220,16 +273,20 @@ async def create_task(
     # , manager_id=current_user.id)
     )
 
-@router.patch("/tasks/{task_id}", response_model=ReturnTask)
-async def edit_task(
+
+@router.patch("/update_task_description/{task_id}/{description}", response_model=ReturnTask)
+async def edit_task_description(
     task_id: int,
-    task: TaskEdit,
+    description: str,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
-    db_task = crud.edit_task(db=db, new_task=task, task_id=task_id)
+    db_task = crud.edit_task_description(db=db, description=description, task_id=task_id)
     if db_task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
         )
     return db_task
+
+
+

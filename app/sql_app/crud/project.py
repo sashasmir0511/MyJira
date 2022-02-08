@@ -59,18 +59,40 @@ def create_project(
     return ReturnProject.parse_obj(to_dict(db_project))
 
 
+def edit_project_description(
+    db: Session,
+    project_id: int,
+    description: str
+    ) -> Optional[ReturnProject]:
+    
+    result = (
+        db.query(models.Project).filter(models.Project.id == project_id).one_or_none()
+    )
+    if result is None:
+        return None
+    result.description = description
+    db.add(result)
+    db.commit()
+    db.refresh(result)
+    print(to_dict(result))
+    return ReturnProject.parse_obj(to_dict(result))
+
+
 def edit_project(
-    db: Session, project_id: int, new_project: ProjectEdit
-) -> Optional[ReturnProject]:
+    db: Session,
+    project_id: int,
+    new_project: ProjectEdit
+    ) -> Optional[ReturnProject]:
+    
     result = (
         db.query(models.Project).filter(models.Project.id == project_id).one_or_none()
     )
     if result is None:
         return None
 
-    result.name = new_project.name
-    result.description = new_project.description
-    result.release_id = new_project.release_id
+    result.name = new_project.name if new_project.name else result.name
+    result.description = new_project.description if new_project.description else result.description
+    result.release_id = new_project.release_id if new_project.release_id else result.release_id
 
     db.add(result)
     db.commit()

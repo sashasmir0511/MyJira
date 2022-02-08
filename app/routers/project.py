@@ -3,7 +3,7 @@ from app.routers.task import get_tasks_by_project_id
 from app.routers.role import get_role_by_id
 from app.routers.release import get_release_by_id
 from app.routers.user import get_user_by_id
-from app.routers.team_member import get_team_members_by_project_id
+from app.routers.team_member import get_team_members_by_project_id, get_team_member_by_id
 from typing import List
 import aiohttp
 
@@ -11,6 +11,8 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, Request
 from sqlalchemy.orm import Session
 from starlette import status
 from fastapi.responses import HTMLResponse
+
+from app.sql_app import db
 
 from ..sql_app.crud import project as crud
 from ..sql_app.db.database import SessionLocal
@@ -36,13 +38,29 @@ def get_db():
 async def websocket_remove_project(websocket: WebSocket,):
     await websocket.accept()
     data = await websocket.receive_json()
-    project_id = data["project_id"]
+    project_name = data["project_name"]
     async with aiohttp.ClientSession() as session:
-        async with session.delete(f'http://0.0.0.0:5000/delete_project/{project_id}') as response:
+        async with session.delete(f'http://0.0.0.0:5000/delete_project_by_name/{project_name}') as response:
             if response.status == 200:
                 await websocket.send_text("OK")
             else:
                 await websocket.send_text("Fail Project")
+
+
+@router.websocket("/update_project/{project_id}/ws")
+async def websocket_update_project(
+    websocket: WebSocket,
+    project_id: int,
+    ):
+    await websocket.accept()
+    data = await websocket.receive_json()
+    description = data["description"]
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(f'http://0.0.0.0:5000/update_project_description/{project_id}/{description}') as response:
+            if response.status == 200:
+                await websocket.send_text("OK")
+            else:
+                await websocket.send_text("Fail")
 
 
 @router.websocket("/create_project/ws")
@@ -86,6 +104,7 @@ async def read_project_list(
     dict_Response = {"request": request}
     dict_Response["project_id"] = [project.id for project in db_projects]
     dict_Response["project_name"] = [project.name for project in db_projects]
+    dict_Response["project_description"] = [project.description for project in db_projects]
     return templates.TemplateResponse("project_list.html", dict_Response)
 
 
@@ -100,6 +119,7 @@ async def read_project(
     db_project = await get_project_by_name(name=project_name, db=db)
     dict_Response = {"request": request, "project_name": project_name, "project_id": db_project.id}
     dict_Response['project_discription'] = db_project.description
+    print(dict_Response)
 
     db_user = await get_user_by_id(user_id=db_project.creator_id, db=db)
     dict_Response["creator_name"] = db_user.name
@@ -113,6 +133,14 @@ async def read_project(
     dict_Response['tasks_id'] = [db_tasks[i].id for i in range(len(db_tasks))]
     dict_Response['tasks_name'] = [db_tasks[i].name for i in range(len(db_tasks))]
     dict_Response['tasks_description'] = [db_tasks[i].description for i in range(len(db_tasks))]
+
+    db_assignee_team_member = [await get_team_member_by_id(i.assignee_id, db=db) for i in db_tasks]
+    db_assignee_user = [await get_user_by_id(i.user_id, db=db) for i in db_assignee_team_member]
+    dict_Response['task_assignee_user'] = [db_assignee_user[i].name for i in range(len(db_assignee_user))]
+
+    db_create_team_member = [await get_team_member_by_id(i.manager_id, db=db) for i in db_tasks]
+    db_create_user = [await get_user_by_id(i.user_id, db=db) for i in db_create_team_member]
+    dict_Response['task_create_user'] = [i.name for i in db_create_user]
 
     db_team_member = await get_team_members_by_project_id(db_project.id, db=db)
     db_team_member_name = [ await get_user_by_id(i.user_id, db=db) for i in db_team_member]
@@ -167,13 +195,13 @@ async def delete_project_by_id(
     return db_project
 
 
-@router.delete("/project", response_model=ReturnProject)
+@router.delete("/delete_project_by_name/{name_project}", response_model=ReturnProject)
 async def delete_project_by_name(
-    name: str,
+    name_project: str,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
-    db_project = crud.delete_project_by_name(db, name=name)
+    db_project = crud.delete_project_by_name(db, name=name_project)
     if db_project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
@@ -202,12 +230,28 @@ async def create_project(
     )
 
 
-@router.patch("/project/{project_id}", response_model=ReturnProject)
+@router.patch("/update_project_description/{project_id}/{description}", response_model=ReturnProject)
+async def edit_project_description(
+    project_id: int,
+    description: str,
+    db: Session = Depends(get_db),
+    #current_user: ReturnUser = Depends(is_manager),
+    ):
+    db_project = crud.edit_project_description(
+        db, project_id=project_id, description=description)
+    if db_project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+    return db_project
+
+
+@router.patch("/update_project/{project_id}", response_model=ReturnProject)
 async def edit_project(
     project_id: int,
     project: ProjectEdit,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
     ):
     db_project = crud.edit_project(
         db, project_id=project_id, new_project=project)
@@ -215,5 +259,4 @@ async def edit_project(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
-
     return db_project

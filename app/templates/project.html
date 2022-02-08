@@ -1,15 +1,6 @@
 <html>
 
 <body>
-    <!-- <button type=" button"">Log out</button>
-    <table>
-        <tbody>
-            <tr>
-                <td><input size =30, placeholder="Enter task name"></input></td>
-                <td><button type=" button"">Find</button></td>
-            </tr>
-        </tbody>
-    </table> -->
     <a href="http://0.0.0.0:5000/project_list"><button>GoHome</button></a>
     <h1>{{project_id}}) {{project_name}}</h1>
     <table>
@@ -31,27 +22,29 @@
     <br>
     <b>Description:</b>
     <br>
-    <textarea>{{project_discription}}</textarea>
-    <br>
-    <br>
+    <form action="" onsubmit="form_updateDiscription(event)">
+        <!-- <td><input type="text" id="i_project_discription" value={{project_discription}} autocomplete="off"/></td> -->
+        <td><textarea placeholder="Project discription" id="i_project_discription">{{project_discription}}</textarea></td>
+        <br>
+        <td><button>Save</button></td>
+    </form>
+    <br><br>
     <table>
         <tbody>
             <tr>
                 <td><b>Id</b></td>
                 <td><b>Name</b></td>
-                <td><b>Link</b></td>
+                <td><b>Description</b></td>
                 <td><b>Creator</b></td>
                 <td><b>Assignee</b></td>
             </tr>
                 {% for i in tasks_id %}
                 <tr>
-                    <td><label>{{i}}</label></td>
-                    <td><label>{{tasks_name[loop.index - 1]}}</label></td>
+                    <td><label>{{i}})</label></td>
+                    <td><a href="http://0.0.0.0:5000/task/{{project_id}}/{{i}}">{{tasks_name[loop.index - 1]}}</a></td>
                     <td><label>{{tasks_description[loop.index - 1]}}</label></td>
-                    <td><a href="http://0.0.0.0:5000/task/{{project_id}}/{{i}}">http://0.0.0.0:5000/task/{{project_id}}/{{i}}</a></td>
-                    <!-- TODO -->
-                    <td><label>Elza Mingazhitdinova</label></td>
-                    <!-- <td><label>No assignee</label></td> -->
+                    <td><label>{{task_create_user[loop.index - 1]}}</label></td>
+                    <td><label>{{task_assignee_user[loop.index - 1]}}</label></td>
                 </tr>
                 {% endfor %}
             </tr>
@@ -78,7 +71,7 @@
                 <td><b>Id</b></td>
                 <td><b>Name</b></td>
                 <td><b>Is manager</b></td>
-                <td><b>Is active</b></td>
+                <!-- <td><b>Is active</b></td> -->
                 <td><b>Role</b></td>
                 <!-- <td><b>Role_2</b></td> -->
                 <td><b></b></td>
@@ -91,7 +84,7 @@
                     <td><label>{{team_member_id[loop.index - 1]}}</label></td>
                     <td><label>{{i}}</label></td>
                     <td><label>{{team_member_is_manager[loop.index - 1]}}</label></td>
-                    <td><label>{{team_member_is_active[loop.index - 1]}}</label></td>
+                    <!-- <td><label>{{team_member_is_active[loop.index - 1]}}</label></td> -->
                     <td><label>{{team_member_role[loop.index - 1]}}</label></td>
                     <!-- <td><select name="">
                         <option value="">no</option>
@@ -116,25 +109,25 @@
         </tbody>
     </table>
     <br>
-    <td><b>Remove Team members</b></td>
-    <form action="" onsubmit="form_removeTeamMembers(event)">
-        <td><label>id_TeamMembers: </label></td>
-        <td><input type="text" id="removeTeamMembers" autocomplete="off"/></td>
+    <td><b>Remove Team member</b></td>
+    <form action="" onsubmit="form_removeTeamMember(event)">
+        <td><label>id_TeamMember: </label></td>
+        <td><input type="text" id="removeTeamMember" autocomplete="off"/></td>
         <td><button>Remove</button></td>
     </form>
-    <td><b>Create Team members</b></td>
-    <form action="" onsubmit="form_CreateTeamMembers(event)">
-        <td><input type="text" id="project_id" value={{project_id}} autocomplete="off"/></td>
-        <td><label>user_id: </label></td>
-        <td><input type="text" id="user_id" autocomplete="off"/></td>
-        <td><label>role_id: </label></td>
-        <td><input type="text" id="role_id" autocomplete="off"/></td>
+    <td><b>Create Team member</b></td>
+    <form action="" onsubmit="form_CreateTeamMember(event)">
+        <td><label>user: </label></td>
+        <td><input type="text" id="user_name" autocomplete="off"/></td>
+        <td><label>role: </label></td>
+        <td><input type="text" id="role_name" autocomplete="off"/></td>
         <td><button>Create TeamMembers</button></td>
     </form>
     <script>
         var ws = new WebSocket("ws://localhost:5000/remove_task/ws");
-        var ws_r = new WebSocket("ws://localhost:5000/remove_TeamMembers/ws");
-        var ws_c = new WebSocket("ws://localhost:5000/create_TeamMembers/ws");
+        var ws_r = new WebSocket("ws://localhost:5000/remove_TeamMember/ws");
+        var ws_c = new WebSocket("ws://localhost:5000/create_TeamMember/{{project_id}}/ws");
+        var ws_u = new WebSocket("ws://localhost:5000/update_project/{{project_id}}/ws");
         
         ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
@@ -142,7 +135,7 @@
                 var content = document.createTextNode(event.data)
                 message.appendChild(content)
                 messages.appendChild(message)
-                window.location.reload()
+                if (content.textContent == "OK") window.location.reload()
         };
         ws_r.onmessage = function(event) {
                 var messages = document.getElementById('messages')
@@ -150,15 +143,23 @@
                 var content = document.createTextNode(event.data)
                 message.appendChild(content)
                 messages.appendChild(message)
-                window.location.reload()
+                if (content.textContent == "OK") window.location.reload()
         };
         ws_c.onmessage = function(event) {
+            var messages = document.getElementById('messages')
+            var message = document.createElement('li')
+            var content = document.createTextNode(event.data)
+            message.appendChild(content)
+            messages.appendChild(message)
+            if (content.textContent == "OK") window.location.reload()
+        };
+        ws_u.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
                 var content = document.createTextNode(event.data)
                 message.appendChild(content)
                 messages.appendChild(message)
-                window.location.reload()
+                if (content.textContent == "OK") window.location.reload()
         };
 
         function sendMessage(event) {
@@ -168,23 +169,28 @@
             event.preventDefault()
         }
 
-        function form_removeTeamMembers(event) {
-            var remove_TeamMembers = document.getElementById("removeTeamMembers")
+        function form_removeTeamMember(event) {
+            var remove_TeamMembers = document.getElementById("removeTeamMember")
             ws_r.send(JSON.stringify({TeamMembers_id: remove_TeamMembers.value}))
             remove_TeamMembers.value = ''
             event.preventDefault()
         }
 
-        function form_CreateTeamMembers(event) {
-            var id_TeamMembers = document.getElementById("user_id")
-            var role_TeamMembers = document.getElementById("role_id")
-            var curr_project_id = document.getElementById("project_id")
-            ws_c.send(JSON.stringify({user_id: id_TeamMembers.value
-                                    ,role_id: role_TeamMembers.value
-                                    ,project_id: curr_project_id.value
+        function form_CreateTeamMember(event) {
+            var id_TeamMembers = document.getElementById("user_name")
+            var role_TeamMembers = document.getElementById("role_name")
+            ws_c.send(JSON.stringify({user_name: id_TeamMembers.value
+                                    ,role_name: role_TeamMembers.value
                                     }))
             id_TeamMembers.value = ''
             role_TeamMembers.value = ''
+            event.preventDefault()
+        }
+    
+        function form_updateDiscription(event) {
+            var m_project_discription = document.getElementById("i_project_discription")
+            ws_u.send(JSON.stringify({description: m_project_discription.value}))
+            m_project_discription.value = ''
             event.preventDefault()
         }
     </script>

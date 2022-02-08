@@ -47,11 +47,11 @@ async def get_role_by_id(
     return role
 
 
-@router.get("/role", response_model=ReturnRole)
+@router.get("/role_name/{name}", response_model=ReturnRole)
 async def get_role_by_name(
     name: str,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(get_current_user),
+    #current_user: ReturnUser = Depends(get_current_user),
 ):
     role = crud.get_role_by_name(db, name=name)
     if role is None:
@@ -65,7 +65,7 @@ async def get_role_by_name(
 async def delete_role_by_id(
     role_id: int,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
 ):
     role = crud.delete_role_by_id(db, role_id=role_id)
     if role is None:
@@ -103,7 +103,7 @@ async def update_role(
     role_id: int,
     new_role: Role,
     db: Session = Depends(get_db),
-    current_user: ReturnUser = Depends(is_manager),
+    #current_user: ReturnUser = Depends(is_manager),
 ):
     role = crud.update(db, new_role=new_role, role_id=role_id)
     if role is None:
